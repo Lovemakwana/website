@@ -21,6 +21,8 @@ body{background:transparent}
 body{font:400 15px/1.45 var(--f);color:var(--fg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 #fx,#bg{position:fixed;inset:0;width:100%;height:100%;z-index:-3}
 #bg{z-index:-2;object-fit:cover}
+#bg0{position:fixed;inset:0;width:100%;height:100%;z-index:-2;object-fit:cover;transition:opacity .7s}
+#bg0.out{opacity:0}
 .shade{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(90% 70% at 50% 45%,rgba(5,6,15,.1),rgba(5,6,15,.6))}
 body.nogl{background:radial-gradient(60% 50% at 70% 15%,#2b32a8,transparent),radial-gradient(50% 45% at 15% 85%,#8d2160,transparent),var(--ink)}
 a{color:inherit;text-decoration:none}
@@ -117,7 +119,8 @@ button.btn.ig{border:0}
 </head>
 <body>
 <canvas id="fx" aria-hidden="true"></canvas>
-<video id="bg" autoplay muted loop playsinline preload="auto" aria-hidden="true"><source src="your-video.mp4" type="video/mp4"></video>
+<video id="bg" muted loop playsinline preload="auto" aria-hidden="true"></video>
+<video id="bg0" muted playsinline preload="auto" aria-hidden="true"></video>
 <div class="shade"></div>
 
 <main class="stage">
@@ -147,13 +150,30 @@ button.btn.ig{border:0}
 <div class="sheet" id="qsheet" role="dialog" aria-modal="true" aria-label="Share my page"><i class="grab"></i><h2>Share my page</h2><p>Scan with a phone camera to open it.</p><div class="qr" id="qr"></div><div class="shrow"><button class="btn ig" id="cp">Copy link</button><button class="btn gh" id="qx">Close</button></div><div class="shrow"><button class="btn gh" id="inst">Add to home screen</button></div><p class="note" id="nt" hidden></p></div>
 
 <script>
+/* ---- BACKGROUND VIDEOS: change the file names here ----
+   intro: plays once at the start (leave '' or don't upload the file to skip it)
+   loop:  plays again and again after the intro (or from the start if there is no intro)
+   once:  'always' = intro plays on every visit, 'session' = only once per browser tab */
+var BG={intro:'welcome.mp4',loop:'your-video.mp4',once:'always'};
 (function(){
-var v=document.getElementById('bg');
-v.muted=true;v.defaultMuted=true;
-v.querySelector('source').addEventListener('error',function(){v.remove()});
-v.addEventListener('playing',function(){window.__v=1;document.getElementById('fx').style.display='none'});
-var pl=v.play();if(pl&&pl.catch)pl.catch(function(){});
-document.addEventListener('touchstart',function(){if(v.paused)v.play()},{once:true});
+var v=document.getElementById('bg'),v0=document.getElementById('bg0'),looped=false,to;
+function hideFx(){window.__v=1;document.getElementById('fx').style.display='none'}
+v.muted=v.defaultMuted=true;v0.muted=v0.defaultMuted=true;
+v.addEventListener('playing',hideFx);v.addEventListener('error',function(){v.remove()});
+if(BG.loop)v.src=BG.loop;else v.remove();
+function startLoop(){if(looped)return;looped=true;clearTimeout(to);
+if(v.parentNode){var pl=v.play();if(pl&&pl.catch)pl.catch(function(){})}
+if(v0.parentNode){v0.classList.add('out');setTimeout(function(){v0.remove()},800)}}
+var seen=false;try{seen=BG.once==='session'&&sessionStorage.getItem('wv')}catch(e){}
+if(BG.intro&&!seen){
+v0.src=BG.intro;
+v0.addEventListener('playing',function(){clearTimeout(to);hideFx();try{sessionStorage.setItem('wv',1)}catch(e){}});
+v0.addEventListener('timeupdate',function(){if(v0.duration&&v0.duration-v0.currentTime<.7)startLoop()});
+v0.addEventListener('ended',startLoop);v0.addEventListener('error',startLoop);
+to=setTimeout(startLoop,3000);
+var p0=v0.play();if(p0&&p0.catch)p0.catch(startLoop)}
+else{v0.remove();startLoop()}
+document.addEventListener('touchstart',function(){if(v0.parentNode&&v0.paused&&!looped)v0.play().catch(function(){});if(looped&&v.parentNode&&v.paused)v.play().catch(function(){})},{once:true});
 
 var card=document.getElementById('card'),calm=matchMedia('(prefers-reduced-motion: reduce)').matches,gyro=false,b0=null;
 function tilt(x,y){var s=card.style;s.setProperty('--ry',(x*9)+'deg');s.setProperty('--rx',(-y*7)+'deg');s.setProperty('--gx',(50+x*70)+'%');s.setProperty('--gy',(50+y*70)+'%');s.setProperty('--mx',x);s.setProperty('--my',y)}
