@@ -28,7 +28,7 @@ body.nogl{background:radial-gradient(60% 50% at 70% 15%,#2b32a8,transparent),rad
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid #fff;outline-offset:3px}
 .stage{min-height:100svh;display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top,0px)) 16px max(18px,env(safe-area-inset-bottom,0px));perspective:1100px}
-.card{position:relative;width:min(100%,400px);padding:26px 22px 20px;text-align:center;border-radius:34px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.04);transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .25s ease-out;animation:rise 1.1s cubic-bezier(.2,.8,.1,1) both}
+.card{position:relative;width:min(100%,400px);padding:26px 22px 20px;text-align:center;border-radius:34px;background:linear-gradient(145deg,rgba(255,255,255,calc(.15*var(--gk))),rgba(255,255,255,calc(.04*var(--gk))) 45%,rgba(20,20,28,calc(.24*var(--gk))));border:1px solid var(--line);backdrop-filter:blur(var(--gb)) saturate(1.5);-webkit-backdrop-filter:blur(var(--gb)) saturate(1.5);box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.04);transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .25s ease-out,--gk .9s ease,--gb .9s ease;animation:rise 1.1s cubic-bezier(.2,.8,.1,1) both}
 @keyframes rise{from{opacity:0;transform:translateY(26px) scale(.97)}}
 .av{position:relative;isolation:isolate;width:96px;height:96px;margin:0 auto 14px;border-radius:50%}
 .av::before,.av::after{content:"";position:absolute;border-radius:50%;background:conic-gradient(var(--a3),var(--a2),var(--a1),var(--a3));animation:spin 6s linear infinite;z-index:-1}
@@ -93,6 +93,10 @@ button.btn.ig{border:0}
 .ico[hidden]{display:none}
 .ico.on{background:rgba(255,255,255,.3)}
 .tr{display:flex;gap:8px}
+@property --gk{syntax:"<number>";inherits:false;initial-value:1}
+@property --gb{syntax:"<length>";inherits:false;initial-value:14px}
+/* while the welcome video plays the glass is clearer; --gk = tint strength (1 = normal), --gb = blur */
+.wv .card{--gk:.25;--gb:2px;text-shadow:0 1px 10px rgba(0,0,0,.6)}
 .row{align-items:start}
 .fb{display:flex;flex-direction:column;gap:5px;text-align:center}
 .fb small{font-size:10.5px;line-height:1.2;color:var(--mut)}
@@ -163,9 +167,11 @@ v.addEventListener('playing',hideFx);v.addEventListener('error',function(){v.rem
 if(BG.loop)v.src=BG.loop;else v.remove();
 function startLoop(){if(looped)return;looped=true;clearTimeout(to);
 if(v.parentNode){var pl=v.play();if(pl&&pl.catch)pl.catch(function(){})}
+document.body.classList.remove('wv');
 if(v0.parentNode){v0.classList.add('out');setTimeout(function(){v0.remove()},800)}}
 var seen=false;try{seen=BG.once==='session'&&sessionStorage.getItem('wv')}catch(e){}
 if(BG.intro&&!seen){
+document.body.classList.add('wv');
 v0.src=BG.intro;
 v0.addEventListener('playing',function(){clearTimeout(to);hideFx();try{sessionStorage.setItem('wv',1)}catch(e){}});
 v0.addEventListener('timeupdate',function(){if(v0.duration&&v0.duration-v0.currentTime<.7)startLoop()});
